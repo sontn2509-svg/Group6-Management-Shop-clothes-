@@ -29,6 +29,14 @@ public class AuthController {
     }
 
     /**
+     * Trang chủ tạm thời điều hướng
+     */
+    @GetMapping("/")
+    public String home() {
+        return "index";
+    }
+
+    /**
      * SCR-02: Hiển thị trang đăng nhập
      */
     @GetMapping("/login")
