@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chi tiết đơn hàng - Clothing Store</title>
+    <!-- Nhúng thuần Bootstrap 5 & Bootstrap Icons qua CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light min-vh-100 d-flex flex-column">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="bi bi-bag-heart-fill me-2"></i>CLOTHING STORE
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#orderDetailNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="orderDetailNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}"><i class="bi bi-house me-1"></i>Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/shop}"><i class="bi bi-shop me-1"></i>Cửa hàng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/cart}"><i class="bi bi-cart3 me-1"></i>Giỏ hàng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/my-orders}"><i class="bi bi-receipt me-1"></i>Đơn mua của tôi</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link text-warning" th:href="@{/admin/users}">
+                        <i class="bi bi-shield-lock me-1"></i>Quản trị Shop
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center gap-3">
+                <a th:href="@{/profile}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-person-circle me-1"></i>
+                    <span sec:authentication="name">Tài khoản</span>
+                </a>
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Container -->
+<div class="container py-4 py-lg-5">
+
+    <!-- Tiêu đề & Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a class="text-decoration-none text-secondary" th:href="@{/}">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a class="text-decoration-none text-secondary" th:href="@{/my-orders}">Đơn mua của tôi</a></li>
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page"
+                th:text="${'Đơn #' + order.orderId}">Đơn #1</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">
+                Chi tiết đơn hàng <span class="text-secondary">#<span th:text="${order.orderId}">1</span></span>
+            </h4>
+            <p class="text-secondary small mb-0">
+                Đặt lúc
+                <span th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm') : '-'}">01/01/2026 10:00</span>
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center mt-3 mt-md-0">
+            <span class="badge fs-6"
+                  th:classappend="${order.orderStatus == null ? 'bg-secondary'
+                      : (order.orderStatus.name() == 'PENDING' ? 'bg-warning text-dark'
+                      : (order.orderStatus.name() == 'CONFIRMED' ? 'bg-info text-dark'
+                      : (order.orderStatus.name() == 'SHIPPING' ? 'bg-primary'
+                      : (order.orderStatus.name() == 'DELIVERED' ? 'bg-success' : 'bg-danger'))))}"
+                  th:text="${order.orderStatus}">PENDING</span>
+
+            <a th:href="@{/my-orders}" class="btn btn-outline-dark btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert thông báo trạng thái -->
+    <div class="alert alert-success alert-dismissible fade show small" role="alert" th:if="${successMessage}">
+        <i class="bi bi-check-circle-fill me-1"></i>
+        <span th:text="${successMessage}">Thao tác thành công!</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show small" role="alert" th:if="${errorMessage}">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        <span th:text="${errorMessage}">Đã xảy ra lỗi!</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Tiến trình đơn hàng -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2 flex-fill">
+                <span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold"
+                      th:classappend="${order.orderStatus != null and order.orderStatus.name() != 'CANCELLED'} ? 'bg-dark text-white' : 'bg-secondary bg-opacity-25 text-secondary'"
+                      style="width: 34px; height: 34px;"><i class="bi bi-clipboard-check"></i></span>
+                <div class="small">
+                    <div class="fw-semibold text-dark">Chờ duyệt</div>
+                    <div class="text-secondary" style="font-size: .75rem;">PENDING</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-fill">
+                <span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold"
+                      th:classappend="${order.orderStatus != null and (order.orderStatus.name() == 'CONFIRMED' or order.orderStatus.name() == 'SHIPPING' or order.orderStatus.name() == 'DELIVERED')} ? 'bg-dark text-white' : 'bg-secondary bg-opacity-25 text-secondary'"
+                      style="width: 34px; height: 34px;"><i class="bi bi-check2-square"></i></span>
+                <div class="small">
+                    <div class="fw-semibold text-dark">Đã xác nhận</div>
+                    <div class="text-secondary" style="font-size: .75rem;">CONFIRMED</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-fill">
+                <span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold"
+                      th:classappend="${order.orderStatus != null and (order.orderStatus.name() == 'SHIPPING' or order.orderStatus.name() == 'DELIVERED')} ? 'bg-dark text-white' : 'bg-secondary bg-opacity-25 text-secondary'"
+                      style="width: 34px; height: 34px;"><i class="bi bi-truck"></i></span>
+                <div class="small">
+                    <div class="fw-semibold text-dark">Đang giao</div>
+                    <div class="text-secondary" style="font-size: .75rem;">SHIPPING</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-fill">
+                <span class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold"
+                      th:classappend="${order.orderStatus != null and order.orderStatus.name() == 'DELIVERED'} ? 'bg-success text-white' : 'bg-secondary bg-opacity-25 text-secondary'"
+                      style="width: 34px; height: 34px;"><i class="bi bi-house-check"></i></span>
+                <div class="small">
+                    <div class="fw-semibold text-dark">Đã giao</div>
+                    <div class="text-secondary" style="font-size: .75rem;">DELIVERED</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-danger small mb-0 mt-3"
+             th:if="${order.orderStatus != null and order.orderStatus.name() == 'CANCELLED'}">
+            <i class="bi bi-x-circle-fill me-1"></i>Đơn hàng này đã bị hủy.
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Cột trái: Danh sách món trong đơn -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 p-md-4">
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-list-check me-1"></i>Sản phẩm trong đơn
+                    <span class="text-secondary fw-normal small"
+                          th:text="${'(' + #lists.size(order.orderDetails) + ' món)'}">(0 món)</span>
+                </h6>
+
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                        <tr class="small text-secondary text-uppercase">
+                            <th style="width: 80px;">Ảnh</th>
+                            <th>Trang phục</th>
+                            <th class="text-center" style="width: 80px;">Size</th>
+                            <th class="text-center" style="width: 80px;">SL</th>
+                            <th class="text-end" style="width: 120px;">Đơn giá</th>
+                            <th class="text-end" style="width: 130px;">Thành tiền</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="d : ${order.orderDetails}">
+                            <td>
+                                <img th:if="${d.product.imageUrl != null and !d.product.imageUrl.isEmpty()}"
+                                     th:src="${d.product.imageUrl}"
+                                     th:alt="${d.product.productName}"
+                                     class="rounded-3 border object-fit-cover"
+                                     style="width: 56px; height: 56px;">
+                                <div th:unless="${d.product.imageUrl != null and !d.product.imageUrl.isEmpty()}"
+                                     class="rounded-3 border bg-light d-flex align-items-center justify-content-center text-secondary"
+                                     style="width: 56px; height: 56px;">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark" th:text="${d.product.productName}">Áo thun cotton</div>
+                                <div class="text-secondary small">
+                                    <span th:text="${d.product.color}">Đen</span>
+                                    <span th:if="${d.product.material != null and !d.product.material.isEmpty()}">
+                                        · <span th:text="${d.product.material}">Cotton</span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary"
+                                      th:text="${d.selectedSize}">M</span>
+                            </td>
+                            <td class="text-center fw-semibold" th:text="${d.quantity}">1</td>
+                            <td class="text-end small text-secondary"
+                                th:text="${#numbers.formatDecimal(d.unitPrice, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</td>
+                            <td class="text-end fw-bold text-dark"
+                                th:text="${#numbers.formatDecimal(d.unitPrice * d.quantity, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Thông tin nhận hàng & tổng tiền -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-geo-alt me-1"></i>Thông tin nhận hàng
+                </h6>
+                <ul class="list-unstyled small text-secondary mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-person me-2 text-dark"></i>
+                        <span class="fw-semibold text-dark" th:text="${order.receiverName}">Nguyễn Văn A</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-telephone me-2 text-dark"></i>
+                        <span th:text="${order.receiverPhone}">0912345678</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-house me-2 text-dark"></i>
+                        <span th:text="${order.shippingAddress}">Địa chỉ</span>
+                    </li>
+                    <li th:if="${order.note != null and !order.note.isEmpty()}">
+                        <i class="bi bi-chat-left-text me-2 text-dark"></i>
+                        <span th:text="${order.note}">Ghi chú</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-receipt-cutoff me-1"></i>Tổng kết đơn hàng
+                </h6>
+
+                <ul class="list-unstyled small mb-3">
+                    <li class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary">Hình thức thanh toán</span>
+                        <span class="badge"
+                              th:classappend="${order.paymentMethod != null and order.paymentMethod.name() == 'COD'} ? 'bg-secondary' : 'bg-info text-dark'"
+                              th:text="${order.paymentMethod}">COD</span>
+                    </li>
+                    <li class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Phí vận chuyển</span>
+                        <span class="text-success fw-semibold">Miễn phí</span>
+                    </li>
+                </ul>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <span class="fw-semibold text-dark">Tổng thanh toán</span>
+                    <span class="fs-5 fw-bold text-danger"
+                          th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</span>
+                </div>
+
+                <!-- Chỉ được hủy khi đơn còn PENDING (BR03) -->
+                <form th:if="${order.orderStatus != null and order.orderStatus.name() == 'PENDING'}"
+                      th:action="@{/my-orders/{id}/cancel(id=${order.orderId})}"
+                      method="post" class="mt-4">
+                    <button type="submit"
+                            class="btn btn-outline-danger w-100 fw-semibold"
+                            th:onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này? Số lượng tồn kho sẽ được cộng trả lại.')">
+                        <i class="bi bi-x-circle me-1"></i>Hủy đơn hàng
+                    </button>
+                </form>
+
+                <p class="text-secondary small text-center mt-3 mb-0"
+                   th:unless="${order.orderStatus != null and order.orderStatus.name() == 'PENDING'}">
+                    <i class="bi bi-lock me-1"></i>Đơn hàng không thể hủy ở trạng thái hiện tại.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-secondary py-3 text-center small mt-auto">
+    <div class="container">
+        © 2026 Group 6 Clothing Store. All rights reserved.
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
