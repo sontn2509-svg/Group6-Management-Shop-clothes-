@@ -263,7 +263,7 @@
                           th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</span>
                 </div>
 
-                <!-- Chỉ được hủy khi đơn còn PENDING (BR03) -->
+                <!-- Chỉ được hủy khi đơn còn ở trạng thái chờ duyệt -->
                 <form th:if="${order.orderStatus != null and order.orderStatus.name() == 'PENDING'}"
                       th:action="@{/my-orders/{id}/cancel(id=${order.orderId})}"
                       method="post" class="mt-4">

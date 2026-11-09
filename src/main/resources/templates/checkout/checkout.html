@@ -56,13 +56,14 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb small">
             <li class="breadcrumb-item"><a class="text-decoration-none text-secondary" th:href="@{/}">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a class="text-decoration-none text-secondary" th:href="@{/cart}">Giỏ hàng</a></li>
+            <li class="breadcrumb-item"><a class="text-decoration-none text-secondary" th:href="@{/cart}">Giỏ hàng</a>
+            </li>
             <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Thanh toán</li>
         </ol>
     </nav>
 
     <div class="mb-4">
-        <h4 class="fw-bold text-dark mb-1">Thanh toán đơn hàng (FR18)</h4>
+        <h4 class="fw-bold text-dark mb-1">Thanh toán đơn hàng</h4>
         <p class="text-secondary small mb-0">Điền thông tin người nhận và xác nhận đặt mua quần áo</p>
     </div>
 
@@ -73,7 +74,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- Giỏ hàng trống: không cho thanh toán (ERR-06) -->
+    <!-- Giỏ hàng trống: không cho thanh toán -->
     <div class="card border-0 shadow-sm rounded-4 bg-white p-5 text-center"
          th:if="${cartItems == null or cartItems.isEmpty()}">
         <i class="bi bi-cart-x display-4 text-secondary d-block mb-3"></i>
@@ -125,7 +126,9 @@
                             <div class="invalid-feedback small" th:if="${#fields.hasErrors('receiverPhone')}"
                                  th:errors="*{receiverPhone}"></div>
                         </div>
-                        <div class="form-text small">Vui lòng nhập đầy đủ địa chỉ nhận hàng và số điện thoại hợp lệ (10 chữ số).</div>
+                        <div class="form-text small">Vui lòng nhập đầy đủ địa chỉ nhận hàng và số điện thoại hợp lệ (10
+                            chữ số).
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -135,7 +138,8 @@
                         <textarea class="form-control" id="shippingAddress" rows="3"
                                   th:field="*{shippingAddress}"
                                   th:classappend="${#fields.hasErrors('shippingAddress')} ? 'is-invalid' : ''"
-                                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
+                                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
+                                  required></textarea>
                         <div class="invalid-feedback small" th:if="${#fields.hasErrors('shippingAddress')}"
                              th:errors="*{shippingAddress}"></div>
                     </div>
@@ -212,14 +216,17 @@
                                 </td>
                                 <td class="px-1">
                                     <div class="small fw-semibold text-dark text-truncate" style="max-width: 180px;"
-                                         th:text="${item.product.productName}">Áo thun cotton</div>
+                                         th:text="${item.product.productName}">Áo thun cotton
+                                    </div>
                                     <div class="text-secondary" style="font-size: .75rem;">
                                         Size <span th:text="${item.selectedSize}">M</span>
                                         · SL <span th:text="${item.quantity}">1</span>
                                     </div>
                                 </td>
                                 <td class="text-end pe-0 small fw-semibold text-dark"
-                                    th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 0, 'POINT', 0, 'COMMA') + ' đ'}">0 đ</td>
+                                    th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 0, 'POINT', 0, 'COMMA') + ' đ'}">
+                                    0 đ
+                                </td>
                             </tr>
                             </tbody>
                         </table>
@@ -254,7 +261,8 @@
                     </a>
 
                     <p class="text-secondary small text-center mt-3 mb-0">
-                        <i class="bi bi-info-circle me-1"></i>Bấm xác nhận nghĩa là bạn đồng ý với chính sách đổi trả của shop.
+                        <i class="bi bi-info-circle me-1"></i>Bấm xác nhận nghĩa là bạn đồng ý với chính sách đổi trả
+                        của shop.
                     </p>
                 </div>
             </div>

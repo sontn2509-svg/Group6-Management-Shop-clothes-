@@ -31,7 +31,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
-    /** FR18 / BR02 / BR04 / NFR04: Đặt hàng, trừ tồn kho, rollback nếu lỗi */
+    /** Đặt hàng: tạo đơn, trừ tồn kho và rollback toàn bộ nếu có lỗi */
     @Transactional
     public Order checkout(Long userId, CheckoutDto dto) {
         User user = userRepository.findById(userId)
@@ -39,7 +39,7 @@ public class OrderService {
 
         List<CartItem> cartItems = cartRepository.findByUserUserId(userId);
 
-        // ERR-06: giỏ hàng trống
+        // Giỏ hàng trống thì không cho đặt hàng
         if (cartItems.isEmpty()) {
             throw new IllegalArgumentException(
                     "Giỏ hàng của bạn đang trống. Vui lòng chọn sản phẩm trước khi thanh toán!");
@@ -62,7 +62,7 @@ public class OrderService {
         for (CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
 
-            // ERR-08 / BR01: kiểm tra lại tồn kho tại thời điểm xác nhận
+            // Kiểm tra lại tồn kho tại thời điểm xác nhận đặt hàng
             if (product.getStatus() != ProductStatus.ACTIVE) {
                 throw new IllegalArgumentException(
                         "Sản phẩm '" + product.getProductName() + "' hiện không còn kinh doanh!");
@@ -72,14 +72,14 @@ public class OrderService {
                         + "' vừa hết hàng hoặc không đủ số lượng. Vui lòng cập nhật lại giỏ hàng!");
             }
 
-            // BR02: trừ tồn kho, tự chuyển OUT_OF_STOCK khi hết
+            // Trừ tồn kho; tự chuyển sang hết hàng khi về 0
             product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
             if (product.getStockQuantity() == 0) {
                 product.setStatus(ProductStatus.OUT_OF_STOCK);
             }
             productRepository.save(product);
 
-            // BR04: unitPrice là giá TẠI THỜI ĐIỂM ĐẶT HÀNG
+            // unitPrice là giá tại thời điểm đặt hàng, không đổi theo giá sản phẩm sau này
             order.getOrderDetails().add(OrderDetail.builder()
                     .order(order)
                     .product(product)
@@ -102,13 +102,13 @@ public class OrderService {
         return savedOrder;
     }
 
-    /** FR19: Lịch sử đơn hàng của tôi */
+    /** Lịch sử đơn hàng của tôi */
     @Transactional(readOnly = true)
     public List<Order> getMyOrders(Long userId) {
         return orderRepository.findByUserUserIdOrderByOrderDateDesc(userId);
     }
 
-    /** FR19: Chi tiết 1 đơn (chỉ chủ đơn mới xem được) */
+    /** Chi tiết một đơn hàng (chỉ chủ đơn mới xem được) */
     @Transactional(readOnly = true)
     public Order getMyOrderDetail(Long orderId, Long userId) {
         Order order = orderRepository.findById(orderId)
@@ -120,7 +120,7 @@ public class OrderService {
         return order;
     }
 
-    /** FR19 / BR03 / ERR-09: Hủy đơn — chỉ khi PENDING, cộng trả kho */
+    /** Hủy đơn hàng — chỉ khi đang chờ duyệt, đồng thời cộng trả số lượng vào kho */
     @Transactional
     public void cancelOrder(Long orderId, Long userId) {
         Order order = getMyOrderDetail(orderId, userId);
@@ -136,7 +136,7 @@ public class OrderService {
         log.info("Khách hủy đơn: orderId={}, userId={}", orderId, userId);
     }
 
-    /** FR20: Admin duyệt / cập nhật tiến độ đơn hàng */
+    /** Admin duyệt và cập nhật tiến độ giao hàng */
     @Transactional
     public void updateStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
@@ -146,7 +146,7 @@ public class OrderService {
             return;
         }
 
-        // BR03: Admin hủy đơn cũng phải cộng trả kho
+        // Admin hủy đơn cũng phải cộng trả lại số lượng vào kho
         if (newStatus == OrderStatus.CANCELLED) {
             restoreStock(order);
         }
@@ -156,7 +156,7 @@ public class OrderService {
         log.info("Admin cập nhật đơn {} sang {}", orderId, newStatus);
     }
 
-    /** FR20: Danh sách đơn toàn shop, lọc theo trạng thái + từ khóa */
+    /** Danh sách đơn toàn shop, lọc theo trạng thái và từ khóa */
     @Transactional(readOnly = true)
     public List<Order> getOrdersForAdmin(OrderStatus status, String keyword) {
         List<Order> orders = (status == null)
@@ -175,7 +175,7 @@ public class OrderService {
                 .toList();
     }
 
-    /** BR03: cộng trả lại số lượng vào kho */
+    /** Cộng trả lại số lượng sản phẩm trong đơn vào kho */
     private void restoreStock(Order order) {
         for (OrderDetail detail : order.getOrderDetails()) {
             Product product = detail.getProduct();

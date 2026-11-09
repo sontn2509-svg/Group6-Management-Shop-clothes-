@@ -36,7 +36,7 @@ public class OrderController {
                 .getUserId();
     }
 
-    /** SCR-06 / FR18: Hiển thị form thanh toán */
+    /** Hiển thị form thanh toán */
     @GetMapping("/checkout")
     public String checkoutPage(Model model, Principal principal) {
         Long userId = currentUserId(principal);
@@ -55,7 +55,7 @@ public class OrderController {
         return "checkout/checkout";
     }
 
-    /** FR18: Xác nhận đặt hàng */
+    /** Xác nhận đặt hàng */
     @PostMapping("/checkout")
     public String doCheckout(@Valid @ModelAttribute("checkoutDto") CheckoutDto checkoutDto,
                              BindingResult bindingResult,
@@ -81,14 +81,14 @@ public class OrderController {
         }
     }
 
-    /** SCR-07 / FR19: Danh sách đơn của tôi */
+    /** Danh sách đơn hàng của tôi */
     @GetMapping("/my-orders")
     public String myOrders(Model model, Principal principal) {
         model.addAttribute("orders", orderService.getMyOrders(currentUserId(principal)));
         return "order/my-orders";
     }
 
-    /** SCR-07 / FR19: Chi tiết đơn */
+    /** Chi tiết đơn hàng của tôi */
     @GetMapping("/my-orders/{id}")
     public String myOrderDetail(@PathVariable("id") Long id,
                                 Model model,
@@ -103,7 +103,7 @@ public class OrderController {
         }
     }
 
-    /** FR19: Hủy đơn */
+    /** Hủy đơn hàng */
     @PostMapping("/my-orders/{id}/cancel")
     public String cancelOrder(@PathVariable("id") Long id,
                               Principal principal,

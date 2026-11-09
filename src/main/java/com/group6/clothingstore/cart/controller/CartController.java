@@ -27,7 +27,7 @@ public class CartController {
                 .getUserId();
     }
 
-    /** SCR-05: Xem giỏ hàng (FR17) */
+    /** Xem giỏ hàng */
     @GetMapping("/cart")
     public String viewCart(Model model, Principal principal) {
         Long userId = currentUserId(principal);
@@ -37,7 +37,7 @@ public class CartController {
         return "cart/cart";
     }
 
-    /** FR16: Chọn Size & thêm vào giỏ */
+    /** Chọn Size và thêm sản phẩm vào giỏ */
     @PostMapping("/cart/add")
     public String addToCart(@RequestParam("productId") Long productId,
                             @RequestParam("selectedSize") String selectedSize,
@@ -53,7 +53,7 @@ public class CartController {
         return "redirect:/cart";
     }
 
-    /** FR17: Đổi số lượng / đổi Size */
+    /** Đổi số lượng / đổi Size của món trong giỏ */
     @PostMapping("/cart/update")
     public String updateItem(@RequestParam("cartItemId") Long cartItemId,
                              @RequestParam("selectedSize") String selectedSize,
@@ -69,7 +69,7 @@ public class CartController {
         return "redirect:/cart";
     }
 
-    /** FR17: Xóa món hàng */
+    /** Xóa món hàng khỏi giỏ */
     @PostMapping("/cart/delete")
     public String removeItem(@RequestParam("cartItemId") Long cartItemId,
                              Principal principal,

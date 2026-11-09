@@ -17,7 +17,7 @@ public class AdminOrderController {
 
     private final OrderService orderService;
 
-    /** SCR-12 / FR20: Danh sách đơn toàn shop + lọc */
+    /** Danh sách đơn toàn shop, kèm lọc theo trạng thái và từ khóa */
     @GetMapping
     public String listOrders(@RequestParam(value = "status", required = false) String status,
                              @RequestParam(value = "keyword", required = false) String keyword,
@@ -37,7 +37,7 @@ public class AdminOrderController {
         return "admin/orders";
     }
 
-    /** FR20: Cập nhật tiến độ giao hàng */
+    /** Cập nhật tiến độ giao hàng của đơn */
     @PostMapping("/{id}/status")
     public String updateStatus(@PathVariable("id") Long id,
                                @RequestParam("status") OrderStatus status,

@@ -51,7 +51,7 @@
     <!-- Tiêu đề -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold text-dark mb-1">Quản lý &amp; Duyệt đơn hàng (FR20)</h4>
+            <h4 class="fw-bold text-dark mb-1">Quản lý &amp; Duyệt đơn hàng</h4>
             <p class="text-secondary small mb-0">Xem danh sách đơn toàn shop, lọc theo trạng thái và cập nhật tiến độ giao hàng</p>
         </div>
     </div>
@@ -170,7 +170,7 @@
                                 <i class="bi bi-eye"></i>
                             </a>
 
-                            <!-- Form cập nhật trạng thái (FR20) -->
+                            <!-- Form cập nhật trạng thái -->
                             <form th:action="@{/admin/orders/{id}/status(id=${o.orderId})}" method="post"
                                   class="d-flex gap-2">
                                 <select class="form-select form-select-sm" name="status" style="width: 135px;">
@@ -193,8 +193,8 @@
 
         <p class="text-secondary small mb-0 mt-3">
             <i class="bi bi-info-circle me-1"></i>
-            Chuyển đơn sang <strong>CANCELLED</strong> sẽ cộng trả lại số lượng tồn kho cho sản phẩm (BR03).
-            Doanh thu chỉ tính các đơn ở trạng thái <strong>DELIVERED</strong> (BR07).
+            Chuyển đơn sang <strong>CANCELLED</strong> sẽ cộng trả lại số lượng tồn kho cho sản phẩm.
+            Doanh thu chỉ tính các đơn ở trạng thái <strong>DELIVERED</strong>.
         </p>
     </div>
 </div>

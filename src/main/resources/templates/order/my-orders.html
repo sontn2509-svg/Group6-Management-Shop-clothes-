@@ -67,7 +67,7 @@
 
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold text-dark mb-1">Đơn mua của tôi (FR19)</h4>
+            <h4 class="fw-bold text-dark mb-1">Đơn mua của tôi</h4>
             <p class="text-secondary small mb-0">Xem lịch sử đơn hàng, chi tiết từng món và hủy đơn khi còn chờ duyệt</p>
         </div>
         <a th:href="@{/shop}" class="btn btn-outline-dark btn-sm mt-3 mt-md-0">
@@ -160,7 +160,7 @@
                             <i class="bi bi-eye me-1"></i>Chi tiết
                         </a>
 
-                        <!-- Chỉ được hủy khi đơn còn PENDING (BR03) -->
+                        <!-- Chỉ được hủy khi đơn còn ở trạng thái chờ duyệt -->
                         <form th:if="${o.orderStatus != null and o.orderStatus.name() == 'PENDING'}"
                               th:action="@{/my-orders/{id}/cancel(id=${o.orderId})}"
                               method="post" class="d-inline">

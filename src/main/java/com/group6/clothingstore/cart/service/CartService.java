@@ -37,7 +37,7 @@ public class CartService {
     }
 
     /**
-     * FR16 / BR01 / ERR-05: Thêm vào giỏ, không vượt tồn kho
+     * Thêm sản phẩm vào giỏ, không vượt quá tồn kho và chỉ áp dụng cho hàng đang bán
      */
     @Transactional
     public void addToCart(Long userId, Long productId, String selectedSize, Integer quantity) {
@@ -74,7 +74,7 @@ public class CartService {
     }
 
     /**
-     * FR17 / ERR-05: Đổi số lượng + đổi Size
+     * Đổi số lượng và đổi Size của món trong giỏ
      */
     @Transactional
     public void updateItem(Long userId, Long cartItemId, String selectedSize, Integer quantity) {
@@ -99,7 +99,7 @@ public class CartService {
     }
 
     /**
-     * FR17: Xóa món hàng khỏi giỏ
+     * Xóa món hàng khỏi giỏ
      */
     @Transactional
     public void removeItem(Long userId, Long cartItemId) {
