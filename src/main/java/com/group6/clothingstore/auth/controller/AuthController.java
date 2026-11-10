@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.group6.clothingstore.product.service.ShopService shopService;
 
     private boolean isAuthenticated() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -29,10 +30,12 @@ public class AuthController {
     }
 
     /**
-     * Trang chủ tạm thời điều hướng
+     * FR11: Trang chủ & Bộ sưu tập mới, bán chạy nhất
      */
     @GetMapping("/")
-    public String home() {
+    public String home(Model model) {
+        model.addAttribute("newestProducts", shopService.newest());
+        model.addAttribute("bestSellerProducts", shopService.bestSellers());
         return "index";
     }
 

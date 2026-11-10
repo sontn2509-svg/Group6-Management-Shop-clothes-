@@ -34,5 +34,22 @@ public interface ProductRepository
             """, nativeQuery = true)
     List<Long> findBestSellerIds();
 
+    // FR24: Báo cáo Top 5 mẫu trang phục có số lượng sản phẩm bán ra nhiều nhất
+    @Query(value = """
+            SELECT TOP (5) d.product_id
+            FROM OrderDetails d
+            JOIN Orders o ON o.order_id = d.order_id
+            WHERE o.order_status = 'DELIVERED'
+            GROUP BY d.product_id
+            ORDER BY SUM(d.quantity) DESC
+            """, nativeQuery = true)
+    List<Long> findTopSellingProductIds();
+
     List<Product> findByStatus(ProductStatus status);
+
+    long countByStatus(ProductStatus status);
+
+    boolean existsByCategoryCategoryId(Integer categoryId);
+
+    long countByCategoryCategoryId(Integer categoryId);
 }

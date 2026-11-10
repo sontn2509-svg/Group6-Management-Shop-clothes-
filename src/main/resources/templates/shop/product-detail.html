@@ -1,73 +1,278 @@
 <!doctype html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title th:text="${product.productName} + ' - Clothing Store'">Chi tiết</title>
+    <title th:text="${product.productName} + ' - Clothing Store'">Chi tiết sản phẩm</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/shop.css}">
 </head>
-<body>
-<nav class="navbar navbar-dark store-nav">
-    <div class="container"><a class="navbar-brand" th:href="@{/}">CLOTHING STORE</a></div>
-</nav>
-<main class="container py-5"><a th:href="@{/shop}" class="text-dark">← Tất cả sản phẩm</a>
-    <div class="row g-5 mt-2">
-        <div class="col-md-6"><img class="detail-img rounded"
-                                   th:if="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}"
-                                   th:src="${product.imageUrl}" alt="Ảnh sản phẩm">
-            <div class="product-placeholder rounded"
-                 th:unless="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}">◈
+<body class="bg-light min-vh-100 d-flex flex-column">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="bi bi-bag-heart-fill me-2"></i>CLOTHING STORE
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navBar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navBar">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}"><i class="bi bi-house me-1"></i>Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/shop}"><i class="bi bi-shop me-1"></i>Cửa hàng</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/cart}"><i class="bi bi-cart3 me-1"></i>Giỏ hàng</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/my-orders}"><i class="bi bi-receipt me-1"></i>Đơn mua</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link text-warning fw-semibold" th:href="@{/admin/dashboard}">
+                        <i class="bi bi-shield-lock me-1"></i>Admin Dashboard
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <div sec:authorize="!isAuthenticated()" class="d-flex gap-2">
+                    <a th:href="@{/login}" class="btn btn-outline-light btn-sm">Đăng nhập</a>
+                    <a th:href="@{/register}" class="btn btn-light btn-sm fw-semibold">Đăng ký</a>
+                </div>
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center gap-2">
+                    <a th:href="@{/profile}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-person-circle me-1"></i><span sec:authentication="name">Tài khoản</span>
+                    </a>
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="btn btn-danger btn-sm">Đăng xuất</button>
+                    </form>
+                </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="text-muted" th:text="${product.category.categoryName}">Danh mục</div>
-            <h1 class="fw-bold mt-2" th:text="${product.productName}">Tên sản phẩm</h1>
-            <h2 class="product-price my-3" th:text="|${#numbers.formatDecimal(product.price,0,'COMMA',0,'POINT')} đ|">0
-                đ</h2>
-            <p><strong>Màu sắc:</strong> <span th:text="${product.color}"></span></p>
-            <p><strong>Chất liệu:</strong> <span th:text="${product.material ?: 'Đang cập nhật'}"></span></p>
-            <p><strong>Giới tính:</strong> <span th:text="${product.gender}"></span></p>
-            <p><strong>Size có sẵn:</strong> <span th:text="${product.availableSizes}"></span></p>
-            <button class="btn btn-outline-dark mb-4" type="button" data-bs-toggle="modal" data-bs-target="#sizeGuide">
-                Hướng dẫn chọn size
-            </button>
-            <h3 class="h5">Mô tả sản phẩm</h3>
-            <p class="text-muted" style="white-space:pre-line" th:text="${product.description ?: 'Chưa có mô tả'}"></p>
-            <p class="small text-muted">Chức năng thêm vào giỏ hàng do module Cart của nhóm phụ trách.</p></div>
+    </div>
+</nav>
+
+<main class="container py-4 flex-grow-1">
+    <div class="mb-3">
+        <a th:href="@{/shop}" class="text-secondary text-decoration-none small">
+            <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách sản phẩm
+        </a>
+    </div>
+
+    <!-- Alert thông báo -->
+    <div class="alert alert-success alert-dismissible fade show small" role="alert" th:if="${successMessage}">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show small" role="alert" th:if="${errorMessage}">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-5">
+        <div class="row g-5">
+            <!-- Cột ảnh -->
+            <div class="col-md-6 text-center">
+                <img class="img-fluid rounded-4 shadow-sm" style="max-height: 480px; width: 100%; object-fit: cover;"
+                     th:if="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}"
+                     th:src="${product.imageUrl}" alt="Ảnh sản phẩm">
+                <div class="bg-light rounded-4 d-flex align-items-center justify-content-center text-muted"
+                     style="height: 400px; font-size: 3rem;"
+                     th:unless="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}">
+                    <i class="bi bi-image"></i>
+                </div>
+            </div>
+
+            <!-- Cột thông tin & Chọn mua -->
+            <div class="col-md-6">
+                <div class="badge bg-secondary mb-2" th:text="${product.category.categoryName}">Danh mục</div>
+                <h1 class="fw-bold text-dark h2 mb-2" th:text="${product.productName}">Tên sản phẩm</h1>
+
+                <!-- Đánh giá sao tóm tắt -->
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="text-warning small" th:if="${averageRating != null}">
+                        <i class="bi bi-star-fill"></i>
+                        <span class="fw-bold text-dark ms-1" th:text="${averageRating} + ' / 5'">4.8 / 5</span>
+                    </div>
+                    <span class="text-muted small" th:if="${reviewCount > 0}" th:text="|(${reviewCount} đánh giá)|">(10 đánh giá)</span>
+                    <span class="text-muted small" th:if="${reviewCount == 0}">Chưa có đánh giá nào</span>
+                </div>
+
+                <h3 class="fw-bold text-danger mb-4"
+                    th:text="|${#numbers.formatDecimal(product.price,0,'COMMA',0,'POINT')} đ|">
+                    0 đ
+                </h3>
+
+                <div class="mb-3 small">
+                    <div class="row g-2">
+                        <div class="col-6"><strong>Màu sắc:</strong> <span th:text="${product.color}"></span></div>
+                        <div class="col-6"><strong>Chất liệu:</strong> <span th:text="${product.material ?: 'Đang cập nhật'}"></span></div>
+                        <div class="col-6"><strong>Giới tính:</strong> <span th:text="${product.gender}"></span></div>
+                        <div class="col-6">
+                            <strong>Tồn kho:</strong>
+                            <span th:if="${product.stockQuantity > 0}" class="text-success fw-semibold" th:text="${product.stockQuantity} + ' chiếc'"></span>
+                            <span th:if="${product.stockQuantity == 0}" class="text-danger fw-semibold">Hết hàng</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#sizeGuide">
+                        <i class="bi bi-rulers me-1"></i>Bảng hướng dẫn chọn size
+                    </button>
+                </div>
+
+                <!-- Form Thêm vào giỏ hàng (FR16 & BR01) -->
+                <div class="card bg-light border-0 p-3 rounded-3 mb-4">
+                    <form th:action="@{/cart/add}" method="post" th:if="${product.status.name() == 'ACTIVE' and product.stockQuantity > 0}">
+                        <input type="hidden" name="productId" th:value="${product.productId}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Chọn kích cỡ (Size):</label>
+                            <div class="d-flex gap-2">
+                                <div class="form-check form-check-inline" th:each="s, stat : ${availableSizesList}">
+                                    <input class="form-check-input" type="radio" name="selectedSize" th:value="${s}"
+                                           th:id="'size_radio_' + ${s}" th:checked="${stat.first}" required>
+                                    <label class="form-check-label fw-bold" th:for="'size_radio_' + ${s}" th:text="${s}"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Số lượng mua:</label>
+                            <div class="input-group" style="width: 140px;">
+                                <input type="number" name="quantity" class="form-control text-center"
+                                       value="1" min="1" th:max="${product.stockQuantity}" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100 py-2 fw-semibold shadow-sm">
+                            <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ hàng
+                        </button>
+                    </form>
+
+                    <div th:unless="${product.status.name() == 'ACTIVE' and product.stockQuantity > 0}"
+                         class="text-center py-2 text-danger fw-semibold">
+                        Sản phẩm hiện đang tạm hết hàng hoặc ngừng kinh doanh!
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-dark">Mô tả sản phẩm</h5>
+                <p class="text-secondary small" style="white-space: pre-line;"
+                   th:text="${product.description ?: 'Chưa có mô tả chi tiết cho sản phẩm này.'}"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phân hệ Đánh giá Khách hàng (FR21 & BR06) -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold text-dark mb-0">
+                <i class="bi bi-star-fill text-warning me-2"></i>Đánh giá từ khách hàng (FR21)
+            </h4>
+            <div th:if="${averageRating != null}" class="fs-5 fw-bold text-dark">
+                <span class="text-warning">★</span> <span th:text="${averageRating}">5.0</span>/5
+            </div>
+        </div>
+
+        <!-- Form gửi đánh giá (chỉ khi canReview == true) -->
+        <div class="border rounded-3 p-3 bg-light mb-4" th:if="${canReview}">
+            <h6 class="fw-bold text-dark mb-2">Gửi nhận xét về chất vải &amp; form dáng sản phẩm</h6>
+            <form th:action="@{/shop/products/{id}/reviews(id=${product.productId})}" method="post">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Chấm điểm sao:</label>
+                    <select name="rating" class="form-select form-select-sm" style="width: 160px;" required>
+                        <option value="5" selected>★★★★★ (5 sao - Rất tốt)</option>
+                        <option value="4">★★★★☆ (4 sao - Tốt)</option>
+                        <option value="3">★★★☆☆ (3 sao - Bình thường)</option>
+                        <option value="2">★★☆☆☆ (2 sao - Tạm được)</option>
+                        <option value="1">★☆☆☆☆ (1 sao - Kém)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Nhận xét chi tiết:</label>
+                    <textarea name="comment" class="form-control form-control-sm" rows="3"
+                              placeholder="Chia sẻ cảm nhận về form dáng, độ co giãn, chất vải của trang phục..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm fw-semibold">
+                    <i class="bi bi-send me-1"></i>Gửi đánh giá
+                </button>
+            </form>
+        </div>
+
+        <!-- Lưu ý nếu không đủ điều kiện theo BR06 -->
+        <div class="alert alert-info small" th:unless="${canReview}">
+            <i class="bi bi-info-circle me-1"></i>
+            Theo quy định (BR06), chỉ những khách hàng đã mua và nhận hàng thành công (đơn hàng ở trạng thái DELIVERED) mới có thể gửi đánh giá cho sản phẩm này.
+        </div>
+
+        <!-- Danh sách nhận xét đã có -->
+        <div class="review-list">
+            <div th:if="${reviews.empty}" class="text-center py-4 text-muted small">
+                Chưa có nhận xét nào cho mẫu quần áo này.
+            </div>
+            <div class="border-bottom py-3" th:each="r : ${reviews}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="fw-semibold text-dark" th:text="${r.user.fullName}">Nguyễn Văn A</div>
+                    <span class="text-muted small" th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy')}">10/11/2026</span>
+                </div>
+                <div class="text-warning small mb-1">
+                    <i class="bi bi-star-fill" th:each="i : ${#numbers.sequence(1, r.rating)}"></i>
+                </div>
+                <p class="text-secondary small mb-0" th:text="${r.comment}">Vải dày dặn, mặc ôm dáng rất đẹp!</p>
+            </div>
+        </div>
     </div>
 </main>
-<div class="modal fade" id="sizeGuide" tabindex="-1" aria-labelledby="sizeTitle" aria-hidden="true">
+
+<!-- Modal Hướng dẫn chọn size -->
+<div class="modal fade" id="sizeGuide" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h2 class="modal-title fs-5" id="sizeTitle">Hướng dẫn chọn size</h2>
-                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Bảng quy đổi kích cỡ (Size Chart)</h5>
+                <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body"><p>Bảng size tham khảo. Hãy đối chiếu số đo thực tế của từng sản phẩm trước khi
-                chọn.</p>
-                <table class="table table-bordered">
-                    <thead>
+            <div class="modal-body small">
+                <p class="text-muted">Bảng size tham khảo dành cho các dòng quần áo tại Group 6 Clothing Store:</p>
+                <table class="table table-bordered table-sm text-center align-middle">
+                    <thead class="table-light">
                     <tr>
                         <th>Size</th>
-                        <th>Gợi ý</th>
+                        <th>Chiều cao (cm)</th>
+                        <th>Cân nặng (kg)</th>
+                        <th>Gợi ý vóc dáng</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
-                        <td>S</td>
-                        <td>Nhỏ</td>
+                        <td class="fw-bold">S</td>
+                        <td>155 - 165</td>
+                        <td>48 - 55</td>
+                        <td>Nhỏ gọn / Người gầy</td>
                     </tr>
                     <tr>
-                        <td>M</td>
-                        <td>Vừa</td>
+                        <td class="fw-bold">M</td>
+                        <td>164 - 172</td>
+                        <td>56 - 65</td>
+                        <td>Vừa vặn / Cân đối</td>
                     </tr>
                     <tr>
-                        <td>L</td>
-                        <td>Lớn</td>
+                        <td class="fw-bold">L</td>
+                        <td>170 - 178</td>
+                        <td>66 - 75</td>
+                        <td>Cao ráo / Hơi đậm người</td>
                     </tr>
                     <tr>
-                        <td>XL</td>
-                        <td>Rất lớn</td>
+                        <td class="fw-bold">XL</td>
+                        <td>175 - 185</td>
+                        <td>76 - 88</td>
+                        <td>Vạm vỡ / Thích mặc rộng</td>
                     </tr>
                     </tbody>
                 </table>
@@ -75,6 +280,13 @@
         </div>
     </div>
 </div>
+
+<footer class="bg-dark text-secondary py-3 text-center small mt-auto">
+    <div class="container">
+        © 2026 Group 6 Clothing Store. All rights reserved.
+    </div>
+</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

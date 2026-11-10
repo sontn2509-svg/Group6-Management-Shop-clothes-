@@ -13,7 +13,7 @@
 <!-- Navbar Admin -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid px-4">
-        <a class="navbar-brand fw-bold text-warning" th:href="@{/admin/users}">
+        <a class="navbar-brand fw-bold text-warning" th:href="@{/admin/dashboard}">
             <i class="bi bi-shield-lock-fill me-2"></i>ADMIN DASHBOARD
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
@@ -22,7 +22,22 @@
         <div class="collapse navbar-collapse" id="adminNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" th:href="@{/admin/users}"><i class="bi bi-people me-1"></i>Quản lý Khách hàng</a>
+                    <a class="nav-link" th:href="@{/admin/dashboard}"><i class="bi bi-speedometer2 me-1"></i>Tổng quan</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/admin/users}"><i class="bi bi-people me-1"></i>Khách hàng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/products}"><i class="bi bi-box-seam me-1"></i>Kho hàng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/categories}"><i class="bi bi-tags me-1"></i>Danh mục</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/orders}"><i class="bi bi-receipt me-1"></i>Đơn hàng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/reviews}"><i class="bi bi-star me-1"></i>Đánh giá</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/}"><i class="bi bi-shop me-1"></i>Xem trang bán hàng</a>

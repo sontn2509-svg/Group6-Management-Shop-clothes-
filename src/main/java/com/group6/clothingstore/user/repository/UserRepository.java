@@ -27,4 +27,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             String email,
             Pageable pageable
     );
+
+    long countByRole(com.group6.clothingstore.shared.enums.Role role);
 }

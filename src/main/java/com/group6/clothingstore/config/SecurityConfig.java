@@ -78,8 +78,8 @@ public class SecurityConfig {
 
                             log.info("Đăng nhập thành công: {}, Quyền: {}", userDetails.getUsername(), roles);
 
-                            // Admin chuyển sang trang quản trị, Customer chuyển về trang chủ
-                            String redirectUrl = roles.contains("ROLE_ADMIN") ? "/admin/users" : "/";
+                            // Admin chuyển sang trang quản trị Dashboard, Customer chuyển về trang chủ
+                            String redirectUrl = roles.contains("ROLE_ADMIN") ? "/admin/dashboard" : "/";
                             response.sendRedirect(request.getContextPath() + redirectUrl);
                         })
                         // Xử lý khi đăng nhập thất bại: Bắt chính xác lỗi sai pass (ERR-03) hoặc tài khoản bị khóa (ERR-04)
