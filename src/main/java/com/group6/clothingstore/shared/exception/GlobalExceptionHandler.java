@@ -4,9 +4,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -46,6 +49,28 @@ public class GlobalExceptionHandler {
         model.addAttribute("error", "Not Found");
         model.addAttribute("message", ex.getMessage());
         return "error/404";
+    }
+
+    /** 405 — gọi sai method (vd gõ URL POST vào thanh địa chỉ → GET) */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public String handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, Model model) {
+        model.addAttribute("status", 405);
+        model.addAttribute("error", "Method Not Allowed");
+        model.addAttribute("message",
+                "Hành động này phải được thực hiện qua nút/form trên trang, không gõ trực tiếp vào thanh địa chỉ.");
+        return "error";
+    }
+
+    /** 400 — sai kiểu tham số (vd /orders/abc thay vì /orders/1) hoặc thiếu param bắt buộc */
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleBadRequest(Exception ex, Model model) {
+        model.addAttribute("status", 400);
+        model.addAttribute("error", "Bad Request");
+        model.addAttribute("message", "Yêu cầu không hợp lệ hoặc thiếu tham số: " + ex.getMessage());
+        return "error";
     }
 
     /** Fallback cho mọi lỗi hệ thống còn lại → 500.

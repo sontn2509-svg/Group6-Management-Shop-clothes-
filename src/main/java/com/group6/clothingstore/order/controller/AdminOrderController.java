@@ -62,4 +62,20 @@ public class AdminOrderController {
         }
         return "redirect:/admin/orders";
     }
+
+    /** Admin duyệt / từ chối yêu cầu hoàn tiền của đơn VNPAY */
+    @PostMapping("/{id}/resolve-refund")
+    public String resolveRefund(@PathVariable("id") Long id,
+                                @RequestParam("approve") boolean approve,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            orderService.resolveRefund(id, approve);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    approve ? "Đã duyệt hoàn tiền cho đơn #" + id + "."
+                            : "Đã từ chối hoàn tiền — đơn #" + id + " quay lại Đã xác nhận.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/admin/orders";
+    }
 }

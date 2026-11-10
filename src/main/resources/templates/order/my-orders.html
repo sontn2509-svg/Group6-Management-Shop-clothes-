@@ -140,8 +140,8 @@
 
                     <td class="text-center">
                         <span class="badge"
-                              th:classappend="${o.paymentMethod != null and o.paymentMethod.name() == 'COD'} ? 'bg-secondary' : 'bg-info text-dark'"
-                              th:text="${o.paymentMethod}">COD</span>
+                              th:classappend="${o.paymentMethod != null and o.paymentMethod.name() == 'COD'} ? 'bg-secondary' : 'bg-primary'"
+                              th:text="${o.paymentMethod != null and o.paymentMethod.name() == 'BANK_TRANSFER'} ? 'VNPAY' : ${o.paymentMethod}">COD</span>
                     </td>
 
                     <td class="text-center">
@@ -155,6 +155,12 @@
                     </td>
 
                     <td class="text-end">
+                        <a th:if="${o.orderStatus != null and o.orderStatus.name() == 'PENDING' and o.paymentMethod != null and o.paymentMethod.name() == 'BANK_TRANSFER'}"
+                           th:href="@{/payment/vnpay/{id}(id=${o.orderId})}"
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-credit-card me-1"></i>VNPAY
+                        </a>
+
                         <a th:href="@{/my-orders/{id}(id=${o.orderId})}"
                            class="btn btn-outline-dark btn-sm">
                             <i class="bi bi-eye me-1"></i>Chi tiết

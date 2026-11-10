@@ -3,11 +3,14 @@ package com.group6.clothingstore.order.controller;
 import com.group6.clothingstore.cart.entity.CartItem;
 import com.group6.clothingstore.cart.service.CartService;
 import com.group6.clothingstore.order.dto.CheckoutDto;
+import com.group6.clothingstore.order.entity.Order;
 import com.group6.clothingstore.order.service.OrderService;
+import com.group6.clothingstore.payment.service.VnPayService;
 import com.group6.clothingstore.shared.enums.PaymentMethod;
 import com.group6.clothingstore.user.entity.User;
 import com.group6.clothingstore.user.repository.UserRepository;
 import com.group6.clothingstore.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,7 @@ public class OrderController {
     private final CartService cartService;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final VnPayService vnPayService;
 
     private Long currentUserId(Principal principal) {
         return userRepository.findByEmail(principal.getName())
@@ -60,6 +64,7 @@ public class OrderController {
     public String doCheckout(@Valid @ModelAttribute("checkoutDto") CheckoutDto checkoutDto,
                              BindingResult bindingResult,
                              Principal principal,
+                             HttpServletRequest request,
                              Model model,
                              RedirectAttributes redirectAttributes) {
         Long userId = currentUserId(principal);
@@ -70,7 +75,11 @@ public class OrderController {
         }
 
         try {
-            orderService.checkout(userId, checkoutDto);
+            Order savedOrder = orderService.checkout(userId, checkoutDto);
+            if (checkoutDto.getPaymentMethod() == PaymentMethod.BANK_TRANSFER) {
+                String vnpayUrl = vnPayService.createPaymentUrl(savedOrder, request);
+                return "redirect:" + vnpayUrl;
+            }
             redirectAttributes.addFlashAttribute("successMessage",
                     "Đặt hàng thành công! Đơn hàng đang chờ Admin duyệt.");
             return "redirect:/my-orders";
@@ -103,7 +112,7 @@ public class OrderController {
         }
     }
 
-    /** Hủy đơn hàng */
+    /** Hủy đơn hàng — cho phép đến khi chuyển sang SHIPPING */
     @PostMapping("/my-orders/{id}/cancel")
     public String cancelOrder(@PathVariable("id") Long id,
                               Principal principal,
@@ -116,6 +125,21 @@ public class OrderController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/my-orders";
+    }
+
+    /** Khách gửi yêu cầu hủy/hoàn tiền cho đơn VNPAY đã thanh toán */
+    @PostMapping("/my-orders/{id}/request-refund")
+    public String requestRefund(@PathVariable("id") Long id,
+                                Principal principal,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            orderService.requestRefund(id, currentUserId(principal));
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã gửi yêu cầu hủy/hoàn tiền. Shop sẽ xử lý và hoàn tiền qua VNPAY cho bạn.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/my-orders/" + id;
     }
 
     private void addCartToModel(Model model, Long userId) {

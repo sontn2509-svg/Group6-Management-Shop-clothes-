@@ -50,6 +50,8 @@ public class SecurityConfig {
                                 "/shop/**",
                                 "/register",
                                 "/login",
+                                "/payment/vnpay-return",
+                                "/payment/vnpay-ipn",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
@@ -61,7 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
                         // Các trang cần đăng nhập
-                        .requestMatchers("/profile/**", "/cart/**", "/checkout/**", "/my-orders/**").authenticated()
+                        .requestMatchers("/profile/**", "/cart/**", "/checkout/**", "/my-orders/**", "/payment/**").authenticated()
 
                         // Các request còn lại
                         .anyRequest().authenticated()
