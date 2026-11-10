@@ -175,6 +175,26 @@ public class OrderService {
                 .toList();
     }
 
+    /** Danh sách đơn có phân trang cho Admin */
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<Order> getOrdersForAdmin(
+            OrderStatus status, String keyword,
+            org.springframework.data.domain.Pageable pageable) {
+        // Khi có keyword thì lọc trên danh sách đầy đủ rồi phân trang thủ công
+        if (keyword != null && !keyword.isBlank()) {
+            List<Order> filtered = getOrdersForAdmin(status, keyword);
+            int start = (int) pageable.getOffset();
+            int end = Math.min(start + pageable.getPageSize(), filtered.size());
+            List<Order> content = start > filtered.size()
+                    ? java.util.Collections.emptyList()
+                    : filtered.subList(start, end);
+            return new org.springframework.data.domain.PageImpl<>(content, pageable, filtered.size());
+        }
+        return (status == null)
+                ? orderRepository.findAllByOrderByOrderDateDesc(pageable)
+                : orderRepository.findByOrderStatusOrderByOrderDateDesc(status, pageable);
+    }
+
     /** Cộng trả lại số lượng sản phẩm trong đơn vào kho */
     private void restoreStock(Order order) {
         for (OrderDetail detail : order.getOrderDetails()) {

@@ -2,6 +2,8 @@ package com.group6.clothingstore.order.repository;
 
 import com.group6.clothingstore.order.entity.Order;
 import com.group6.clothingstore.shared.enums.OrderStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,6 +19,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByOrderStatusOrderByOrderDateDesc(OrderStatus orderStatus);
 
     List<Order> findAllByOrderByOrderDateDesc();
+
+    Page<Order> findAllByOrderByOrderDateDesc(Pageable pageable);
+
+    Page<Order> findByOrderStatusOrderByOrderDateDesc(OrderStatus orderStatus, Pageable pageable);
 
     // BR07 & FR25: Báo cáo thống kê doanh thu chỉ tính tổng tiền của các đơn DELIVERED
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.orderStatus = com.group6.clothingstore.shared.enums.OrderStatus.DELIVERED")
