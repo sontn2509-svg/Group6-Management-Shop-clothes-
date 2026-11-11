@@ -127,21 +127,6 @@ public class OrderController {
         return "redirect:/my-orders";
     }
 
-    /** Khách gửi yêu cầu hủy/hoàn tiền cho đơn VNPAY đã thanh toán */
-    @PostMapping("/my-orders/{id}/request-refund")
-    public String requestRefund(@PathVariable("id") Long id,
-                                Principal principal,
-                                RedirectAttributes redirectAttributes) {
-        try {
-            orderService.requestRefund(id, currentUserId(principal));
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Đã gửi yêu cầu hủy/hoàn tiền. Shop sẽ xử lý và hoàn tiền qua VNPAY cho bạn.");
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/my-orders/" + id;
-    }
-
     private void addCartToModel(Model model, Long userId) {
         List<CartItem> items = cartService.getCart(userId);
         model.addAttribute("cartItems", items);

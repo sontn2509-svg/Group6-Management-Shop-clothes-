@@ -170,9 +170,7 @@
                                   : (o.orderStatus.name() == 'PENDING' ? 'bg-warning text-dark'
                                   : (o.orderStatus.name() == 'CONFIRMED' ? 'bg-info text-dark'
                                   : (o.orderStatus.name() == 'SHIPPING' ? 'bg-primary'
-                                  : (o.orderStatus.name() == 'DELIVERED' ? 'bg-success'
-                                  : (o.orderStatus.name() == 'REFUND_REQUESTED' ? 'bg-warning text-dark'
-                                  : (o.orderStatus.name() == 'REFUNDED' ? 'bg-secondary' : 'bg-danger'))))))}"
+                                  : (o.orderStatus.name() == 'DELIVERED' ? 'bg-success' : 'bg-danger'))))}"
                               th:text="${o.orderStatus}">PENDING</span>
                     </td>
 
@@ -183,26 +181,6 @@
                                title="Xem chi tiết đơn hàng">
                                 <i class="bi bi-eye"></i>
                             </a>
-
-                            <!-- Đơn đang chờ hoàn tiền: nút Duyệt / Từ chối -->
-                            <th:block th:if="${o.orderStatus != null and o.orderStatus.name() == 'REFUND_REQUESTED'}">
-                                <form th:action="@{/admin/orders/{id}/resolve-refund(id=${o.orderId})}" method="post"
-                                      class="d-inline">
-                                    <input type="hidden" name="approve" value="true">
-                                    <button type="submit" class="btn btn-success btn-sm" title="Duyệt hoàn tiền"
-                                            th:onclick="return confirm('Duyệt hoàn tiền cho đơn này? Tồn kho sẽ được cộng trả.')">
-                                        <i class="bi bi-cash-coin"></i>
-                                    </button>
-                                </form>
-                                <form th:action="@{/admin/orders/{id}/resolve-refund(id=${o.orderId})}" method="post"
-                                      class="d-inline">
-                                    <input type="hidden" name="approve" value="false">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Từ chối"
-                                            th:onclick="return confirm('Từ chối hoàn tiền? Đơn sẽ quay lại Đã xác nhận.')">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                </form>
-                            </th:block>
 
                             <!-- Form cập nhật trạng thái -->
                             <form th:action="@{/admin/orders/{id}/status(id=${o.orderId})}" method="post"
@@ -227,10 +205,8 @@
 
         <p class="text-secondary small mb-0 mt-3">
             <i class="bi bi-info-circle me-1"></i>
-            Chuyển đơn sang <strong>CANCELLED</strong> sẽ cộng trả lại tồn kho. Đơn
-            <strong>REFUND_REQUESTED</strong> (VNPAY đã trả, khách yêu cầu hủy): <strong>✓ Duyệt</strong> →
-            REFUNDED + hoàn kho; <strong>✗ Từ chối</strong> → quay lại CONFIRMED.
-            Doanh thu chỉ tính đơn <strong>DELIVERED</strong>.
+            Chuyển đơn sang <strong>CANCELLED</strong> sẽ cộng trả lại số lượng tồn kho cho sản phẩm.
+            Doanh thu chỉ tính các đơn ở trạng thái <strong>DELIVERED</strong>.
         </p>
 
         <!-- Phân trang -->

@@ -121,79 +121,25 @@ public class OrderService {
     }
 
     /**
-     * Hủy đơn hàng — cho phép hủy đến khi đơn chuyển sang SHIPPING.
-     * Đơn COD chưa ship → hủy ngay. Đơn VNPAY đã trả (CONFIRMED) → dùng requestRefund.
+     * Hủy đơn hàng — cho phép hủy đến khi đơn chuyển sang SHIPPING (giống Shopee).
      * Hủy thành công → cộng trả số lượng vào kho.
      */
     @Transactional
     public void cancelOrder(Long orderId, Long userId) {
         Order order = getMyOrderDetail(orderId, userId);
 
-        // Shopee-style: chặn hủy khi đã giao cho đơn vị vận chuyển
+        // Chặn hủy khi đã giao cho đơn vị vận chuyển hoặc đã kết thúc
         if (order.getOrderStatus() == OrderStatus.SHIPPING
                 || order.getOrderStatus() == OrderStatus.DELIVERED
-                || order.getOrderStatus() == OrderStatus.CANCELLED
-                || order.getOrderStatus() == OrderStatus.REFUNDED) {
+                || order.getOrderStatus() == OrderStatus.CANCELLED) {
             throw new IllegalArgumentException(
                     "Đơn hàng đã được bàn giao cho đơn vị vận chuyển hoặc đã kết thúc, không thể hủy!");
-        }
-
-        // Đơn VNPAY đã thanh toán (CONFIRMED) → không hủy trực tiếp, phải gửi yêu cầu hoàn tiền
-        if (order.getPaymentMethod() == com.group6.clothingstore.shared.enums.PaymentMethod.BANK_TRANSFER
-                && order.getOrderStatus() == OrderStatus.CONFIRMED) {
-            throw new IllegalArgumentException(
-                    "Đơn hàng đã thanh toán qua VNPAY. Vui lòng gửi 'Yêu cầu hủy/hoàn tiền' để shop xử lý.");
         }
 
         restoreStock(order);
         order.setOrderStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
         log.info("Khách hủy đơn: orderId={}, userId={}", orderId, userId);
-    }
-
-    /**
-     * Khách gửi yêu cầu hủy/hoàn tiền cho đơn VNPAY đã thanh toán (CONFIRMED) —
-     * đơn chưa ship. Đơn chuyển sang REFUND_REQUESTED chờ admin duyệt.
-     */
-    @Transactional
-    public void requestRefund(Long orderId, Long userId) {
-        Order order = getMyOrderDetail(orderId, userId);
-
-        if (order.getPaymentMethod() != com.group6.clothingstore.shared.enums.PaymentMethod.BANK_TRANSFER) {
-            throw new IllegalArgumentException("Chỉ đơn thanh toán VNPAY mới cần yêu cầu hoàn tiền!");
-        }
-        if (order.getOrderStatus() != OrderStatus.CONFIRMED) {
-            throw new IllegalArgumentException(
-                    "Chỉ đơn đã thanh toán và chưa giao mới được yêu cầu hoàn tiền!");
-        }
-
-        order.setOrderStatus(OrderStatus.REFUND_REQUESTED);
-        orderRepository.save(order);
-        log.info("Khách yêu cầu hoàn tiền đơn: orderId={}, userId={}", orderId, userId);
-    }
-
-    /**
-     * Admin duyệt yêu cầu hoàn tiền → REFUNDED + cộng trả kho.
-     * Admin từ chối → đơn quay lại CONFIRMED.
-     */
-    @Transactional
-    public void resolveRefund(Long orderId, boolean approve) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Đơn hàng không tồn tại!"));
-
-        if (order.getOrderStatus() != OrderStatus.REFUND_REQUESTED) {
-            throw new IllegalArgumentException("Đơn hàng không ở trạng thái chờ hoàn tiền!");
-        }
-
-        if (approve) {
-            restoreStock(order);
-            order.setOrderStatus(OrderStatus.REFUNDED);
-            log.info("Admin duyệt hoàn tiền đơn {}", orderId);
-        } else {
-            order.setOrderStatus(OrderStatus.CONFIRMED);
-            log.info("Admin từ chối hoàn tiền đơn {} → quay lại CONFIRMED", orderId);
-        }
-        orderRepository.save(order);
     }
 
     /** Admin duyệt và cập nhật tiến độ giao hàng */

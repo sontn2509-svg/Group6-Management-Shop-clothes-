@@ -83,9 +83,7 @@
                       : (order.orderStatus.name() == 'PENDING' ? 'bg-warning text-dark'
                       : (order.orderStatus.name() == 'CONFIRMED' ? 'bg-info text-dark'
                       : (order.orderStatus.name() == 'SHIPPING' ? 'bg-primary'
-                      : (order.orderStatus.name() == 'DELIVERED' ? 'bg-success'
-                      : (order.orderStatus.name() == 'REFUND_REQUESTED' ? 'bg-warning text-dark'
-                      : (order.orderStatus.name() == 'REFUNDED' ? 'bg-secondary' : 'bg-danger'))))))}"
+                      : (order.orderStatus.name() == 'DELIVERED' ? 'bg-success' : 'bg-danger'))))}"
                   th:text="${order.orderStatus}">PENDING</span>
 
             <a th:href="@{/my-orders}" class="btn btn-outline-dark btn-sm">
@@ -150,16 +148,6 @@
         <div class="alert alert-danger small mb-0 mt-3"
              th:if="${order.orderStatus != null and order.orderStatus.name() == 'CANCELLED'}">
             <i class="bi bi-x-circle-fill me-1"></i>Đơn hàng này đã bị hủy.
-        </div>
-        <div class="alert alert-warning small mb-0 mt-3"
-             th:if="${order.orderStatus != null and order.orderStatus.name() == 'REFUND_REQUESTED'}">
-            <i class="bi bi-arrow-counterclockwise me-1"></i>
-            Bạn đã gửi yêu cầu hủy/hoàn tiền. Shop đang xử lý — tiền sẽ được hoàn qua VNPAY sau khi được duyệt.
-        </div>
-        <div class="alert alert-secondary small mb-0 mt-3"
-             th:if="${order.orderStatus != null and order.orderStatus.name() == 'REFUNDED'}">
-            <i class="bi bi-cash-coin me-1"></i>
-            Đơn hàng đã được hoàn tiền. Số tiền sẽ về tài khoản/VNPAY của bạn trong 3-5 ngày làm việc.
         </div>
     </div>
 
@@ -282,38 +270,19 @@
                     <i class="bi bi-credit-card-2-front me-1"></i>Thanh toán ngay qua VNPAY
                 </a>
 
-                <!-- Nút hủy / yêu cầu hoàn tiền: cho phép đến khi đơn chuyển sang SHIPPING -->
-                <th:block th:if="${order.orderStatus != null
+                <!-- Nút hủy: cho phép đến khi đơn chuyển sang SHIPPING -->
+                <form th:if="${order.orderStatus != null
                         and order.orderStatus.name() != 'SHIPPING'
                         and order.orderStatus.name() != 'DELIVERED'
-                        and order.orderStatus.name() != 'CANCELLED'
-                        and order.orderStatus.name() != 'REFUND_REQUESTED'
-                        and order.orderStatus.name() != 'REFUNDED'}">
-
-                    <!-- Đơn VNPAY đã thanh toán (CONFIRMED): gửi yêu cầu hoàn tiền chờ admin duyệt -->
-                    <form th:if="${order.paymentMethod != null and order.paymentMethod.name() == 'BANK_TRANSFER'
-                            and order.orderStatus.name() == 'CONFIRMED'}"
-                          th:action="@{/my-orders/{id}/request-refund(id=${order.orderId})}"
-                          method="post" class="mt-4">
-                        <button type="submit"
-                                class="btn btn-outline-warning w-100 fw-semibold"
-                                th:onclick="return confirm('Gửi yêu cầu hủy/hoàn tiền đơn đã thanh toán? Shop sẽ xử lý và hoàn tiền qua VNPAY.')">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>Yêu cầu hủy / Hoàn tiền
-                        </button>
-                    </form>
-
-                    <!-- Đơn COD hoặc VNPAY chưa trả (PENDING): hủy ngay -->
-                    <form th:if="${order.paymentMethod == null or order.paymentMethod.name() == 'COD'
-                            or order.orderStatus.name() == 'PENDING'}"
-                          th:action="@{/my-orders/{id}/cancel(id=${order.orderId})}"
-                          method="post" class="mt-4">
-                        <button type="submit"
-                                class="btn btn-outline-danger w-100 fw-semibold"
-                                th:onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này? Số lượng tồn kho sẽ được cộng trả lại.')">
-                            <i class="bi bi-x-circle me-1"></i>Hủy đơn hàng
-                        </button>
-                    </form>
-                </th:block>
+                        and order.orderStatus.name() != 'CANCELLED'}"
+                      th:action="@{/my-orders/{id}/cancel(id=${order.orderId})}"
+                      method="post" class="mt-4">
+                    <button type="submit"
+                            class="btn btn-outline-danger w-100 fw-semibold"
+                            th:onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này? Số lượng tồn kho sẽ được cộng trả lại.')">
+                        <i class="bi bi-x-circle me-1"></i>Hủy đơn hàng
+                    </button>
+                </form>
 
                 <p class="text-secondary small text-center mt-3 mb-0"
                    th:if="${order.orderStatus != null and (order.orderStatus.name() == 'SHIPPING' or order.orderStatus.name() == 'DELIVERED')}">

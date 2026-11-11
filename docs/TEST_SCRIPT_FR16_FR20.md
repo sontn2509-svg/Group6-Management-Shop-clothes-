@@ -75,19 +75,17 @@ Làm theo đúng thứ tự để thấy đủ validate và nghiệp vụ.
 
 ---
 
-## FR19 — Khách tự hủy đơn (+ Hoàn tiền)
+## FR19 — Khách tự hủy đơn
 
-**URL:** `POST /my-orders/{id}/cancel` — hủy được đến khi đơn `SHIPPING` · `POST /my-orders/{id}/request-refund` — đơn VNPAY đã trả
+**URL:** `POST /my-orders/{id}/cancel` — hủy được đến khi đơn `SHIPPING` (giống Shopee)
 
 | # | Thao tác | Kỳ vọng | Rule |
 |---|---------|---------|------|
-| 1 | Đơn **COD** `PENDING`/`CONFIRMED` → bấm "Hủy đơn" | Đơn `CANCELLED`, tồn kho cộng trả | FR19 — COD hủy ngay |
-| 2 | Đơn **VNPAY** `PENDING` (chưa trả) → "Hủy đơn" | `CANCELLED`, tồn kho trả | VNPAY chưa trả = như COD |
-| 3 | Đơn **VNPAY** `CONFIRMED` (đã trả) → "Yêu cầu hủy/Hoàn tiền" | Đơn `REFUND_REQUESTED`, chờ admin | Không hủy trực tiếp, phải duyệt hoàn tiền |
-| 4 | Kiểm tra tồn kho sau hủy | Xem lại sản phẩm | `stock` cộng trả; `OUT_OF_STOCK`→`ACTIVE` | `restoreStock` |
-| 5 | Hủy đơn `SHIPPING`/`DELIVERED` | Lỗi "đã được bàn giao cho đơn vị vận chuyển..." | BR03 — đã ship thì khóa hủy |
-| 6 | Hủy đơn của người khác | Lỗi "Bạn không có quyền xem đơn hàng này!" | Bảo mật |
-| 7 | Thử bấm "Hủy" trên đơn VNPAY `CONFIRMED` | Lỗi: "Đơn hàng đã thanh toán qua VNPAY. Vui lòng gửi 'Yêu cầu hủy/hoàn tiền'..." | Chặn hủy trực tiếp đơn đã trả |
+| 1 | Đơn `PENDING`/`CONFIRMED` → bấm "Hủy đơn" | Đơn `CANCELLED`, tồn kho cộng trả | FR19 — chưa ship thì hủy được |
+| 2 | Kiểm tra tồn kho sau hủy | Xem lại sản phẩm | `stock` cộng trả; `OUT_OF_STOCK`→`ACTIVE` | `restoreStock` |
+| 3 | Hủy đơn `SHIPPING`/`DELIVERED` | Lỗi "đã được bàn giao cho đơn vị vận chuyển hoặc đã kết thúc..." | BR03 — đã ship/kết thúc thì khóa hủy |
+| 4 | Hủy đơn `CANCELLED` | Lỗi "đã kết thúc, không thể hủy" | Đã hủy rồi |
+| 5 | Hủy đơn của người khác | Lỗi "Bạn không có quyền xem đơn hàng này!" | Bảo mật |
 
 ---
 
@@ -116,13 +114,8 @@ Làm theo đúng thứ tự để thấy đủ validate và nghiệp vụ.
 | 4 | Bất kỳ → `CANCELLED` | Đơn hủy, **tồn kho cộng trả lại** (giống khách hủy FR19) | `restoreStock` |
 | 5 | Đổi sang trạng thái hiện tại | Không làm gì (return sớm, không lỗi) | Guard trùng trạng thái |
 
-### Duyệt yêu cầu hoàn tiền (POST /admin/orders/{id}/resolve-refund)
-Khi đơn ở `REFUND_REQUESTED` (VNPAY đã trả, khách yêu cầu hủy):
-
-| # | Nút | Kỳ vọng |
-|---|-----|---------|
-| 1 | ✓ **Duyệt** (`approve=true`) | Đơn `REFUNDED`, tồn kho cộng trả — "đã duyệt hoàn tiền" |
-| 2 | ✗ **Từ chối** (`approve=false`) | Đơn quay lại `CONFIRMED` — "đã từ chối hoàn tiền" |
+### Duyệt yêu cầu hoàn tiền — đã gỡ
+Phần này trước đây có chức năng hoàn tiền riêng cho đơn VNPAY, nhưng đã **gỡ bỏ** để đơn giản. Giờ khách hủy đơn COD/VNPAY đều theo cùng cách — `cancelOrder` xử lý trực tiếp.
 
 ---
 
@@ -147,4 +140,3 @@ Khi đơn ở `REFUND_REQUESTED` (VNPAY đã trả, khách yêu cầu hủy):
 | — | Hủy (khách/admin) → **cộng trả kho**, `OUT_OF_STOCK`→`ACTIVE` | `restoreStock` |
 | — | Xem/hủy đơn: check `order.user == currentUser` (chống xem đơn người khác) | `getMyOrderDetail` |
 | — | 2 cổng thanh toán: `COD` → về `/my-orders`; `BANK_TRANSFER` → VNPay | `doCheckout` |
-| — | **Hoàn tiền:** VNPAY `CONFIRMED` (đã trả, chưa ship) → khách `requestRefund` → `REFUND_REQUESTED` → admin `resolveRefund` → `REFUNDED`+hoàn kho, hoặc từ chối → `CONFIRMED` | `requestRefund`, `resolveRefund` |
